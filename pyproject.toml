@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cd_base"
+version = "1.0.0"
+description = "Conexión a base de datos para la Dirección de Ciencia de Datos"
+authors = [
+    {name = "Claudio Daniel PachecoC astro"}
+]
+readme = "README.md"
+requires-python = ">=3.9"
+
+dependencies = [
+    "sshtunnel",
+    "python-dotenv",
+    "sqlalchemy",
+    "pymysql"
+]
