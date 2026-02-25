@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+venv/
+
+# Seguridad
+*.pem
+bd_*.txt
+.env
