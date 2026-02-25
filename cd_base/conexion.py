@@ -25,6 +25,7 @@ class ConexionBD:
             "SSH_PORT",
             "SSH_USER",
             "SSH_KEY_FILE",
+            "SSH_KEY_PASSPHRASE",
             "REMOTE_DB_HOST",
             "REMOTE_DB_PORT",
             "DB_USER",
@@ -39,9 +40,13 @@ class ConexionBD:
         SSH_PORT = int(os.getenv("SSH_PORT"))
         SSH_USER = os.getenv("SSH_USER")
         SSH_KEY_FILE = os.getenv("SSH_KEY_FILE")
+        SSH_KEY_PASSPHRASE = os.getenv("SSH_KEY_PASSPHRASE")
 
         REMOTE_DB_HOST = os.getenv("REMOTE_DB_HOST")
         REMOTE_DB_PORT = int(os.getenv("REMOTE_DB_PORT"))
+        LOCAL_BIND_HOST = os.getenv("LOCAL_BIND_HOST")
+        LOCAL_BIND_PORT = int(os.getenv("LOCAL_BIND_PORT"))
+        
 
         DB_USER = os.getenv("DB_USER")
         DB_PASS = os.getenv("DB_PASS")
@@ -58,8 +63,9 @@ class ConexionBD:
             (SSH_HOST, SSH_PORT),
             ssh_username=SSH_USER,
             ssh_pkey=SSH_KEY_PATH,
+            ssh_private_key_password=SSH_KEY_PASSPHRASE,
             remote_bind_address=(REMOTE_DB_HOST, REMOTE_DB_PORT),
-            local_bind_address=("127.0.0.1", 0)
+            local_bind_address=(LOCAL_BIND_HOST, LOCAL_BIND_PORT)
         )
 
         self.tunnel.start()
