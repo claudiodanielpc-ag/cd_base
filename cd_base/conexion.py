@@ -1,7 +1,7 @@
 import os
 from sshtunnel import SSHTunnelForwarder
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 
 class ConexionBD:
@@ -13,11 +13,11 @@ class ConexionBD:
 
     def conectar(self, db_name: str):
 
-        # Validar que exista el archivo
+        # 1️⃣ Validar que exista el archivo de credenciales
         if not os.path.exists(self.path_env):
             raise FileNotFoundError(f"No existe el archivo: {self.path_env}")
 
-        # Cargar variables del archivo
+        # 2️⃣ Cargar variables
         load_dotenv(self.path_env)
 
         required_vars = [
@@ -44,21 +44,21 @@ class ConexionBD:
 
         REMOTE_DB_HOST = os.getenv("REMOTE_DB_HOST")
         REMOTE_DB_PORT = int(os.getenv("REMOTE_DB_PORT"))
-        LOCAL_BIND_HOST = os.getenv("LOCAL_BIND_HOST")
-        LOCAL_BIND_PORT = int(os.getenv("LOCAL_BIND_PORT"))
-        
+
+        LOCAL_BIND_HOST = os.getenv("LOCAL_BIND_HOST", "127.0.0.1")
+        LOCAL_BIND_PORT = int(os.getenv("LOCAL_BIND_PORT", 0))
 
         DB_USER = os.getenv("DB_USER")
         DB_PASS = os.getenv("DB_PASS")
 
-        # 🔐 Construir ruta del .pem relativa al archivo .txt
+        # 3️⃣ Construir ruta del PEM relativa al archivo .txt
         base_dir = os.path.dirname(os.path.abspath(self.path_env))
         SSH_KEY_PATH = os.path.join(base_dir, SSH_KEY_FILE)
 
         if not os.path.exists(SSH_KEY_PATH):
             raise FileNotFoundError(f"No existe el archivo PEM: {SSH_KEY_PATH}")
 
-        # 1️⃣ Crear túnel SSH
+        # 4️⃣ Crear túnel SSH
         self.tunnel = SSHTunnelForwarder(
             (SSH_HOST, SSH_PORT),
             ssh_username=SSH_USER,
@@ -70,13 +70,26 @@ class ConexionBD:
 
         self.tunnel.start()
 
-        # 2️⃣ Crear engine SQLAlchemy
+        # 5️⃣ Crear engine SQLAlchemy
         connection_string = (
             f"mysql+pymysql://{DB_USER}:{DB_PASS}"
             f"@127.0.0.1:{self.tunnel.local_bind_port}/{db_name}"
         )
 
         self.engine = create_engine(connection_string, pool_pre_ping=True)
+
+        # 6️⃣ Validar conexión real y existencia de la base
+        try:
+            with self.engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+        except Exception:
+            if self.engine:
+                self.engine.dispose()
+            if self.tunnel:
+                self.tunnel.stop()
+            raise ConnectionError(
+                f"La base '{db_name}' no existe o las credenciales son inválidas."
+            )
 
         print(f"✅ Conectado a base: {db_name}")
 
