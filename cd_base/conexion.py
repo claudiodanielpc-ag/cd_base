@@ -18,7 +18,7 @@ class ConexionBD:
             raise FileNotFoundError(f"No existe el archivo: {self.path_env}")
 
         # 2️⃣ Cargar variables
-        load_dotenv(self.path_env)
+        load_dotenv(self.path_env, override=True)
 
         required_vars = [
             "SSH_HOST",
